@@ -1,4 +1,4 @@
-'use client';
+'u'use client';
 
 import { useState, useEffect } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
@@ -9,11 +9,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
+// API key should be without the 'key=' prefix
 const GOOGLE_MAPS_API_KEY = 'AIzaSyD9axfPLt0DlFk6pRqYrXE-qZPCDDF4bck';
 
 export default function Home() {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [yardSize, setYardSize] = useState<string>('Medium');
+  const [yardSize, setYardSize] = useState<string>('Medium'); // Default value added
   const [yardClassification, setYardClassification] = useState<string | null>(null);
   const [yardScreenshot, setYardScreenshot] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ export default function Home() {
     try {
       setLoading(true);
       setError(null);
-      setAddress(newAddress);
+      setAddress(newAddress); // Update address state with user input
 
       const response = await fetch(`/api/measure-yard?address=${encodeURIComponent(newAddress)}`);
       const data = await response.json();
@@ -72,6 +73,19 @@ export default function Home() {
       setYardSize(data.yardSize || 'Medium');
       setYardClassification(data.yardClassification);
       setYardScreenshot(data.yardScreenshot);
+
+      if (map) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: newAddress }, (results, status) => {
+          if (status === 'OK' && results && results[0].geometry.location) {
+            map.setCenter(results[0].geometry.location);
+            map.setZoom(20);
+          } else {
+            console.error('Geocoding failed:', status);
+            setError('Failed to locate the address on the map');
+          }
+        });
+      }
     } catch (error) {
       console.error('Error measuring yard:', error);
       setError('An error occurred while measuring the yard. Please try again.');
@@ -113,3 +127,5 @@ export default function Home() {
     </div>
   );
 }
+
+
